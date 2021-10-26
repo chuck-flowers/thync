@@ -24,6 +24,7 @@ all: $(MAN_PAGES) $(BIN_FILES)
 
 clean:
 	find $(SHR_DIR)/man -name \*.gz -delete
+	rm -f $(BIN_FILES)
 
 # Build rules
 $(BIN_DIR)/%: $(SRC_FILES)
