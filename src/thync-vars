@@ -8,9 +8,10 @@ main() {
 	}
 
 	# Application directories and files
-	local configDir variablesFile
+	local configDir variablesFile tmpVariablesFile
 	configDir="${XDG_CONFIG_HOME:-$HOME/.config/thync}"
 	variablesFile="$configDir/variables"
+	tmpVariablesFile="/tmp/thync-variables"
 
 	# Create the application directories and files if necessary
 	[[ -d "$configDir" ]] || mkdir -p "$configDir"
@@ -95,6 +96,36 @@ main() {
 			sed -E 's/\t+/\t/g' "$variablesFile" | grep -E "^$varName	" | cut -f "$varInfoField"
 		;;
 		'set')
+			# Parse the options
+			if TEMP=$(getopt -n 'thync-vars' -- "$@"); then
+				eval set -- "$TEMP"
+				unset TEMP
+
+				while true; do
+					case "$1" in
+						'--')
+							shift
+							break
+						;;
+					esac
+				done
+			else
+				exit 1
+			fi
+
+			# Extract the remaining CLI args
+			local varName varValue
+			varName="$1"
+			varValue="$2"
+
+			# Define the replacement expression
+			local replaceMatch="^${varName}(\\t+)([^\\t]+)(\\t+).*$"
+			local newLine="${varName}\\1\\2\\3${varValue}"
+			local replaceExpr="s/$replaceMatch/$newLine/g"
+
+			# Update the file
+			sed -E "$replaceExpr" "$variablesFile" > "$tmpVariablesFile" \
+				&& cat "$tmpVariablesFile" > "$variablesFile"
 		;;
 		*)
 			__fail "Unrecognized thync-vars command '$1'"
