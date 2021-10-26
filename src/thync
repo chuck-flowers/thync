@@ -1,0 +1,17 @@
+#!/usr/bin/bash
+
+main() {
+	__fail() {
+		echo "$1" > /dev/stderr
+		exit 1
+	}
+
+	if type "thync-$1" > /dev/null; then
+		"thync-$1" "${@:2}"
+	else
+		__fail "Unrecognized command '$1'"
+	fi
+}
+
+main "$@"
+

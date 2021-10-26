@@ -1,0 +1,104 @@
+#!/usr/bin/bash
+
+main() {
+
+	__fail() {
+		echo "$1" > /dev/stderr
+		exit 1
+	}
+
+	# Application directories and files
+	local configDir variablesFile
+	configDir="${XDG_CONFIG_HOME:-$HOME/.config/thync}"
+	variablesFile="$configDir/variables"
+
+	# Create the application directories and files if necessary
+	[[ -d "$configDir" ]] || mkdir -p "$configDir"
+	[[ -e "$variablesFile" ]] || touch "$variablesFile"
+
+	case "$1" in
+		'define')
+			# Parse the options
+			local varType
+			varType="color"
+			if TEMP=$(getopt -o 't:' --long 'type:' -n 'thync-vars' -- "$@"); then
+				exit 1
+			else
+				eval set -- "$TEMP"
+				unset TEMP
+
+				while true; do
+					case "$1" in
+						'-t'|'--type')
+							case "$2" in
+								'color'|'number')
+									varType=$2
+									shift 2
+								;;
+								*)
+									__fail "'$2' is not a valid variable type"
+								;;
+							esac
+						;;
+						'--')
+							shift
+							break
+						;;
+					esac
+				done
+			fi
+
+			# Read variable name
+			local varName
+			varName="$2"
+
+			# Test for a variable collision
+			if [ "$(thync-vars get -t "$varName")" != "" ]; then
+				__fail "A variable with the name '$varName' already exists"
+			fi
+
+			printf "%s\t%s" "$varName" "$varType" > "$variablesFile"
+		;;
+		'get')
+			# Parse the options
+			local isType
+			isType=0
+
+			if TEMP=$(getopt -o 't' --long 'type' -n 'thync-vars' -- "$@"); then
+				eval set -- "$TEMP"
+				unset TEMP
+
+				while true; do
+					case "$1" in
+						'-t'|'--type')
+							isType=1
+							shift
+						;;
+						'--')
+							shift
+							break
+						;;
+					esac
+				done
+			else
+				exit 1
+			fi
+
+			local varName varInfoField
+			varName="$2"
+			if [ "$isType" -eq 1 ]; then
+				varInfoField=2
+			else
+				varInfoField=3
+			fi
+
+			sed -E 's/\t+/\t/g' "$variablesFile" | grep -E "^$varName	" | cut -f "$varInfoField"
+		;;
+		'set')
+		;;
+		*)
+			__fail "Unrecognized thync-vars command '$1'"
+		;;
+	esac
+} && main "$@"
+
