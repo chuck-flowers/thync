@@ -57,6 +57,33 @@ main() {
 
 			printf '%s\t%s\n' "$varName" "$varType" >> "$variablesFile"
 		;;
+		'rm')
+			# Parse the options
+			if TEMP=$(getopt -n 'thync-vars' -- "$@"); then
+				eval set -- "$TEMP"
+				unset TEMP
+
+				while true; do
+					case "$1" in
+						'--')
+							shift
+							break
+						;;
+					esac
+				done
+			else
+				exit 1
+			fi
+			
+			# Read variable name
+			local varName="$2"
+
+			# Updates the config file
+			local matchExpr="^${varName}\\t"
+			local sedExpr="s/${matchExpr}//"
+			sed -E "$sedExpr" "$variablesFile" > "$tmpVariablesFile" &&\
+				cat "$tmpVariablesFile" > "$variablesFile"
+		;;
 		'ls')
 			# Parse the options
 			if TEMP=$(getopt -n 'thync-vars' -- "$@"); then
@@ -115,9 +142,8 @@ main() {
 				varInfoField=3
 			fi
 			
-			local matchExpr='\t+'
-			local outputExpr='\t'
-			local sedExpr="s/$matchExpr/$outputExpr/"
+			# Extracts the value or type from the config file
+			local sedExpr="s/\\t+/\\t/"
 			sed -E "$sedExpr" "$variablesFile" | grep -E "^$varName	" | cut -f "$varInfoField"
 		;;
 		'set')
@@ -139,13 +165,12 @@ main() {
 			fi
 
 			# Extract the remaining CLI args
-			local varName varValue
-			varName="$1"
-			varValue="$2"
+			local varName="$1"
+			local varValue="$2"
 
 			# Define the replacement expression
-			local replaceMatch="^${varName}(\\t+)([^\\t]+)(\\t+).*$"
-			local newLine="${varName}\\1\\2\\3${varValue}"
+			local replaceMatch="^${varName}\\t+([^\\t]+)\\t*.*$"
+			local newLine="${varName}\\t\\1\\t${varValue}"
 			local replaceExpr="s/$replaceMatch/$newLine/g"
 
 			# Update the file
