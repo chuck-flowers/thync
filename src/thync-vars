@@ -8,10 +8,9 @@ main() {
 	}
 
 	# Application directories and files
-	local configDir variablesFile tmpVariablesFile
-	configDir="${XDG_CONFIG_HOME:-$HOME/.config/thync}"
-	variablesFile="$configDir/variables"
-	tmpVariablesFile="/tmp/thync-variables"
+	local configDir="${XDG_CONFIG_HOME:-$HOME/.config/thync}"
+	local variablesFile="$configDir/variables"
+	local tmpVariablesFile="/tmp/thync-variables"
 
 	# Create the application directories and files if necessary
 	[[ -d "$configDir" ]] || mkdir -p "$configDir"
@@ -20,11 +19,8 @@ main() {
 	case "$1" in
 		'define')
 			# Parse the options
-			local varType
-			varType="color"
+			local varType="color"
 			if TEMP=$(getopt -o 't:' --long 'type:' -n 'thync-vars' -- "$@"); then
-				exit 1
-			else
 				eval set -- "$TEMP"
 				unset TEMP
 
@@ -47,18 +43,19 @@ main() {
 						;;
 					esac
 				done
+			else
+				exit 1
 			fi
 
 			# Read variable name
-			local varName
-			varName="$2"
+			local varName="$2"
 
 			# Test for a variable collision
 			if [ "$(thync-vars get -t "$varName")" != "" ]; then
 				__fail "A variable with the name '$varName' already exists"
 			fi
 
-			printf "%s\t%s" "$varName" "$varType" > "$variablesFile"
+			printf '%s\t%s\n' "$varName" "$varType" >> "$variablesFile"
 		;;
 		'get')
 			# Parse the options
