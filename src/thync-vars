@@ -57,10 +57,33 @@ main() {
 
 			printf '%s\t%s\n' "$varName" "$varType" >> "$variablesFile"
 		;;
+		'ls')
+			# Parse the options
+			if TEMP=$(getopt -n 'thync-vars' -- "$@"); then
+				eval set -- "$TEMP"
+				unset TEMP
+
+				while true; do
+					case "$1" in
+						'--')
+							shift
+							break
+						;;
+					esac
+				done
+			else
+				exit 1
+			fi
+
+			# Format the output of the variables file
+			local matchExpr='^([^\t]+)\t+([^\t]+)\t*(.*)$'
+			local outputExpr='\1: \2 = \3'
+			local sedExpr="s/$matchExpr/$outputExpr/"
+			sed -E "$sedExpr" "$variablesFile"
+		;;
 		'get')
 			# Parse the options
-			local isType
-			isType=0
+			local isType=0
 
 			if TEMP=$(getopt -o 't' --long 'type' -n 'thync-vars' -- "$@"); then
 				eval set -- "$TEMP"
@@ -82,15 +105,20 @@ main() {
 				exit 1
 			fi
 
-			local varName varInfoField
-			varName="$2"
+			local varName="$2"
+
+			# Determine which field to show
+			local varInfoField
 			if [ "$isType" -eq 1 ]; then
 				varInfoField=2
 			else
 				varInfoField=3
 			fi
-
-			sed -E 's/\t+/\t/g' "$variablesFile" | grep -E "^$varName	" | cut -f "$varInfoField"
+			
+			local matchExpr='\t+'
+			local outputExpr='\t'
+			local sedExpr="s/$matchExpr/$outputExpr/"
+			sed -E "$sedExpr" "$variablesFile" | grep -E "^$varName	" | cut -f "$varInfoField"
 		;;
 		'set')
 			# Parse the options
