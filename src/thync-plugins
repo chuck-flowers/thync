@@ -1,2 +1,10 @@
 #!/usr/bin/bash
 
+main() {
+	# Go through each PATH entry
+	for p in $(echo "$PATH" | tr ':' '\n'); do
+		# Find each executable matching the pattern and extract the name
+		find "$p" -name thync-plugin-\* -type f -executable -printf '%f\n' | sed -E 's/^thync-plugin-(.*)$/\1/'
+	done
+} && main "$@"
+
