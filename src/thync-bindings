@@ -1,1 +1,68 @@
 #!/usr/bin/bash
+
+main() {
+	# Create the bindings file if it doesn't exist
+	local bindingsFile="${XDG_CONFIG_HOME:-"$HOME/.config"}/thync/bindings"
+	local tmpBindingsFile="/tmp/thync-bindings"
+	[ -e "$bindingsFile" ] || touch "$bindingsFile"
+
+	__fail() {
+		echo "$1" > /dev/stderr
+		exit 1
+	}
+
+	__verify_var() {
+		[ -z "$(thync-vars get -t "$1")" ] && \
+			__fail "The variable '$1' is not defined"
+	}
+
+	__verify_plugin() {
+		thync-plugins | grep -E "^$1$" > /dev/null ||  \
+			__fail "The plugin '$1' is not installed"
+	}
+
+	__verify_target() {
+		thync-targets "$1" | grep -E "^$2$" > /dev/null || \
+			__fail "The plugin '$1' does not provide the target '$2'"
+	}
+
+	local cmd="$1"
+
+	case "$cmd" in
+		'ls'|'')
+			local matchExpr='^([^\t]+)\t([^\t]+)\t([^\t]+)$'
+			local outExpr='\1 -> \2.\3'
+			sed -E "s/$matchExpr/$outExpr/" "$bindingsFile"
+		;;
+		'add')
+			local varName="$2"
+			local pluginName="$3"
+			local targetName="$4"
+
+			__verify_var "$varName"
+			__verify_plugin "$pluginName"
+			__verify_target "$pluginName" "$targetName"
+
+			# Write the binding to the bindings file
+			printf '%s\t%s\t%s\n' "$varName" "$pluginName" "$targetName" >> "$bindingsFile"
+
+			# Apply the binding to the specified target
+			thync-plugin-"$pluginName" set "$targetName" "$(thync-vars get "$varName")"
+		;;
+		'rm')
+			local pluginName="$2"
+			local targetName="$3"
+
+			__verify_plugin "$pluginName"
+			__verify_target "$pluginName" "$targetName"
+
+			local matchExpr="^$varName\t$pluginName\t$targetName$"
+			local sedExpr="s/$matchExpr//"
+			sed -E "$sedExpr" "$bindingsFile" > "$tmpBindingsFile" && \
+				cat "$tmpBindingsFile" > "$bindingsFile"
+		;;
+		*) 
+			__fail "Unrecognized command '$cmd'"
+		;;
+	esac
+} && main "$@"
