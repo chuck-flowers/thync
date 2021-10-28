@@ -1,0 +1,64 @@
+#!/usr/bin/bash
+
+main() {
+	local alacrittyConfig="$HOME/.config/alacritty/alacritty.yml"
+	local tmpAlacrittyConfig="/tmp/alacritty.yml"
+
+	__fail() {
+		echo "$1" > /dev/stderr
+		exit 1
+	}
+
+	_show_targets() {
+		echo 'colors.primary.background';
+		echo 'colors.primary.foreground';
+		echo 'colors.primary.bright_foreground';
+		echo 'colors.primary.dim_foreground';
+
+		echo 'colors.bright.black';
+		echo 'colors.bright.red';
+		echo 'colors.bright.green';
+		echo 'colors.bright.yellow';
+		echo 'colors.bright.blue';
+		echo 'colors.bright.magenta';
+		echo 'colors.bright.cyan';
+		echo 'colors.bright.white';
+
+		echo 'colors.normal.black';
+		echo 'colors.normal.red';
+		echo 'colors.normal.green';
+		echo 'colors.normal.yellow';
+		echo 'colors.normal.blue';
+		echo 'colors.normal.magenta';
+		echo 'colors.normal.cyan';
+		echo 'colors.normal.white';
+
+		echo 'colors.dim.black';
+		echo 'colors.dim.red';
+		echo 'colors.dim.green';
+		echo 'colors.dim.yellow';
+		echo 'colors.dim.blue';
+		echo 'colors.dim.magenta';
+		echo 'colors.dim.cyan';
+		echo 'colors.dim.white';
+	}
+
+	local cmd="$1"
+	case "$cmd" in
+		'targets')
+			_show_targets
+		;;
+		'set')
+			local targetName="$2"
+			local targetValue="$3"
+
+			if _show_targets | grep -E "^$targetName$" > /dev/null; then
+				yq ".$targetName = \"$targetValue\"" "$alacrittyConfig" -y > "$tmpAlacrittyConfig" && \
+					cat "$tmpAlacrittyConfig" > "$alacrittyConfig"
+			else
+				__fail "Unrecognized target '$targetName'"
+			fi
+		;;
+	esac
+} && main "$@"
+
