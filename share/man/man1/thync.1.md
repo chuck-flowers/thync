@@ -46,5 +46,5 @@ A **TYPE** defines what kinds of values are allowed for a **VARIABLE** or **TARG
 
 # SEE ALSO
 
-**thync-vars(1)** **thync-plugins**
+**thync-vars(1)** **thync-targets(1)** **thync-plugins(1)**
 
