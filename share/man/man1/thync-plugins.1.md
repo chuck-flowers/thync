@@ -2,13 +2,20 @@
 
 # NAME
 
+thync-plugins - a utility for managing thync plugins
+
 # SYNOPSIS
+
+**thync-plugins**
 
 # DESCRIPTION
 
-# OPTIONS
+Thync plugins allow for providing additional targets for binding thync variables.
 
-# FILES
+All usage of **thync-plugins** can be replaced with **thync plugins**.
 
 # EXAMPLES
+
+**thync-plugins**
+: Lists all currently installed plugins
 
