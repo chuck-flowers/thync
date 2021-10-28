@@ -1,2 +1,26 @@
 #!/usr/bin/bash
 
+main() {
+	__fail() {
+		echo "$1" > /dev/stderr
+		exit 1
+	}
+
+	local pluginName="$1"
+	if [ -n "$pluginName" ]; then
+		if thync-plugins | grep -E "^$pluginName" > /dev/null; then
+			"thync-plugin-$pluginName" targets
+		else
+			__fail "No plugin with the name '$pluginName' is installed"
+		fi
+	else
+		for plugin in $(thync-plugins); do
+			echo "$plugin"
+			for target in $("thync-plugin-$plugin" targets); do
+				printf '\t%s\n' "$target"
+			done
+		done
+	fi
+
+} && main "$@"
+
