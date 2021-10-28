@@ -10,7 +10,7 @@ thync-vars - a utility for interacting with thync's variable system
 
 **thync-vars** **rm** _name_
 
-**thync-vars** **ls**
+**thync-vars** [ **ls** ]
 
 **thync-vars** **get** _name_ [**-t**]
 

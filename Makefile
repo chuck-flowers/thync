@@ -46,5 +46,6 @@ install-man: $(MAN_PAGES)
 # Uninstallation Rules
 uninstall:
 	rm -f $(addprefix $(PREFIX)/, $(BIN_FILES)) \; 
+	find $(SHR_DIR)/bash-completions -type f -exec rm $(PREFIX)/{} \;
 	find $(SHR_DIR) -type f -name \*.gz -exec rm $(PREFIX)/{} \;
 

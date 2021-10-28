@@ -84,9 +84,9 @@ main() {
 			sed -E "$sedExpr" "$variablesFile" > "$tmpVariablesFile" &&\
 				cat "$tmpVariablesFile" > "$variablesFile"
 		;;
-		'ls')
+		'ls'|'')
 			# Parse the options
-			if TEMP=$(getopt -n 'thync-vars' -- "$@"); then
+			if TEMP=$(getopt -n 'thync-vars' -- "${@:-''}"); then
 				eval set -- "$TEMP"
 				unset TEMP
 
