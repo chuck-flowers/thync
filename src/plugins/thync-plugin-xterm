@@ -1,0 +1,58 @@
+#!/usr/bin/bash
+
+main() {
+	local xResourcesFile="$HOME/.Xresources"
+	local tmpFile='/tmp/.Xresources'
+
+	__fail() {
+		echo "$1" > /dev/stderr
+		exit 1
+	}
+
+	_show_targets() {
+		echo 'foreground'
+		echo 'background'
+		echo 'color0'
+		echo 'color1'
+		echo 'color2'
+		echo 'color3'
+		echo 'color4'
+		echo 'color5'
+		echo 'color6'
+		echo 'color7'
+		echo 'color8'
+		echo 'color9'
+		echo 'color10'
+		echo 'color11'
+		echo 'color12'
+		echo 'color13'
+		echo 'color14'
+		echo 'color15'
+	}
+
+	local cmd="$1"
+
+	case "$cmd" in
+		'targets')
+			_show_targets
+		;;
+		'set')
+			local targetName="$2"
+			local targetValue="$3"
+
+			if [ "$(_show_targets | grep -E "^$targetName$")" != '' ]; then
+				local matchExpr="^XTerm.vt100.$targetName:.*$" 
+				local outExpr="XTerm.vt100.$targetName: $targetValue"
+
+				if grep -E "$matchExpr" "$xResourcesFile" > /dev/null; then
+					sed -E "s/$matchExpr/$outExpr/" "$xResourcesFile" > "$tmpFile" &&\
+						cat "$tmpFile" > "$xResourcesFile"
+				else
+					echo "$outExpr" >> "$xResourcesFile"
+				fi
+			else
+				__fail "The target name '$targetName' is not supported"
+			fi
+		;;
+	esac
+} && main "$@"
