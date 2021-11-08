@@ -38,7 +38,7 @@ install-bin: $(BIN_FILES)
 	find $(BIN_DIR) -type f -executable -exec install -D {} $(PREFIX)/{} \;
 
 install-completions:
-	find $(SHR_DIR)/bash-completions -type f -exec install -D {} $(PREFIX)/{} \;
+	find $(SHR_DIR)/bash-completion -type f -exec install -D {} $(PREFIX)/{} \;
 
 install-man: $(MAN_PAGES)
 	find $(SHR_DIR)/man -type f -name \*.gz -exec install -D {} $(PREFIX)/{} \;

@@ -1,0 +1,124 @@
+#!/usr/bin/bash
+
+_thync() {
+	local toComplete=${COMP_WORDS[$COMP_CWORD]}
+	local commands=('vars' 'plugins' 'targets' 'bindings')
+	local command="${COMP_WORDS[1]}"
+
+	# Complete the command if requested
+	if [ "$COMP_CWORD" -eq 1 ]; then
+		mapfile -t COMPREPLY < <(compgen -W "${commands[*]}" -- "$command")
+	else
+		COMP_CWORD="$((COMP_CWORD - 1))"
+		COMP_WORDS=("${COMP_WORDS[@]:1}")
+		type -t "_thync_$command" > /dev/null && "_thync_$command"
+	fi
+} && complete -F _thync thync
+
+_thync_vars() {
+	local toComplete=${COMP_WORDS[$COMP_CWORD]}
+	local verbs='ls define get set rm'
+	local verb="${COMP_WORDS[1]}"
+
+	# Complete the command if requested
+	if [ "$COMP_CWORD" -eq 1 ]; then
+		mapfile -t COMPREPLY < <(compgen -W "$verbs" -- "$verb")
+	else
+		# Create an array of thync variables
+		local currentVariables
+		mapfile currentVariables < <(thync-vars ls | cut -d: -f1)
+
+		case "$verb" in
+			'define')
+				local precedingWord=${COMP_WORDS[$((COMP_CWORD - 1))]}
+				local varTypes='color number'
+
+				case "$precedingWord" in
+					'-t'|'--type')
+						mapfile -t COMPREPLY < <(compgen -W "$varTypes" -- "$toComplete")
+						;;
+					*)
+						local flags=('-t' '--type')
+						mapfile -t COMPREPLY < <(compgen -W "${flags[*]}" -- "$toComplete")
+						;;
+				esac
+				;;
+			'rm')
+				mapfile -t COMPREPLY < <(compgen -W "${currentVariables[*]}" -- "$toComplete")
+				;;
+			'ls'|'')
+				# No completions can be made for an 'ls' command
+				;;
+			'get')
+				local flags=( '-t' '--type' )
+				mapfile -t COMPREPLY < <(compgen -W "${currentVariables[*]} ${flags[*]}" -- "$toComplete")
+				;;
+			'set')
+				# Variable completion
+				if [ "$COMP_CWORD" -eq 2 ]; then
+					mapfile -t COMPREPLY < <(compgen -W "${currentVariables[*]}" -- "$toComplete")
+				fi
+
+				# TODO: Value completion
+				;;
+		esac
+	fi
+} && complete -F _thync_vars thync-vars
+
+_thync_plugins() {
+	local toComplete="${COMP_WORDS[$COMP_CWORD]}"
+	# No completion to perform correctly
+} && complete -F _thync_plugins thync-plugins
+
+_thync_targets() {
+	local toComplete="${COMP_WORDS[$COMP_CWORD]}"
+
+	local installedPlugins
+	mapfile installedPlugins < <(thync-plugins)
+
+	mapfile -t COMPREPLY < <(compgen -W "${installedPlugins[*]}" -- "$toComplete")
+} && complete -F _thync_targets thync-targets
+
+_thync_bindings() {
+	local toComplete="${COMP_WORDS[$COMP_CWORD]}"
+
+	local command="${COMP_WORDS[1]}"
+	local commands=('ls' 'add' 'rm')
+
+	if [[ "$COMP_CWORD" -eq 1 ]]; then
+		mapfile -t COMPREPLY < <(compgen -W "${commands[*]}" -- "$toComplete")
+	else
+		case "$command" in
+			'ls')
+				local flags=('-p' '--plugins')
+				mapfile -t COMPREPLY < <(compgen -W "${flags[*]}" -- "$toComplete")
+				;;
+			'add')
+				case "$COMP_CWORD" in
+					2)
+						mapfile -t COMPREPLY < <(compgen -W "$(thync-vars | cut -d: -f1)" -- "$toComplete")
+						;;
+					3)
+						mapfile -t COMPREPLY < <(compgen -W "$(thync-plugins)" -- "$toComplete")
+						;;
+					4)
+						local pluginName="${COMP_WORDS[3]}"
+						mapfile -t COMPREPLY < <(compgen -W "$(thync-targets "$pluginName")" -- "$toComplete")
+						;;
+				esac
+				;;
+			'rm')
+				case "$COMP_CWORD" in
+					2)
+						mapfile -t COMPREPLY < <(compgen -W "$(thync-plugins)" -- "$toComplete")
+						;;
+					3)
+						local pluginName="${COMP_WORDS[2]}"
+						mapfile -t COMPREPLY < <(compgen -W "$(thync-targets "$pluginName")" -- "$toComplete")
+						;;
+				esac
+				;;
+		esac
+	fi
+} && complete -F _thync_bindings thync-bindings
+
