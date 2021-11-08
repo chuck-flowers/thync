@@ -16,7 +16,7 @@ thync-bindings - a util for interacting with thync's variable-target binding sys
 
 A binding refers to the application of a variables value to a plugin's target. Once a binding is created, any changes to the bound variable are automatically applied to all bound targets.
 
-All usage of **thync-vars** can also be accomplished with **thync vars**.
+All usage of **thync-bindings** can also be accomplished with **thync bindings**.
 
 # OPTIONS
 
