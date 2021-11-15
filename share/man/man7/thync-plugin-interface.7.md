@@ -6,9 +6,9 @@ thync-plugin-interface - The thync plugin requirements for implementation
 
 # SYNOPSIS
 
-**thync-plugin** **targets** **get**
+**thync-plugin** **targets**
 
-**thync-plugin** **targets** **set** _target_ _value_
+**thync-plugin** **set** _target_ _value_
 
 # DESCRIPTION
 
