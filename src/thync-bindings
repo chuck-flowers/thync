@@ -31,7 +31,7 @@ main() {
 	case "$cmd" in
 		'ls'|'')
 			# Parse the CLI options
-			local plugin='[^\t]+'
+			local plugin=''
 			if TEMP=$(getopt -o 'p:' --long 'plugin:' -- "$@"); then
 				eval set -- "$TEMP"
 				while true; do
@@ -51,10 +51,11 @@ main() {
 				exit 1
 			fi
 
-			local matchExpr='^([^\t]+)\t([^\t]+)\t([^\t]+)$'
-			local outExpr='\1 -> \2.\3'
-			grep "^([^\t]+)\t($plugin)\t([^\t]+)$" "$bindingsFile" && \
-				sed -E "s/$matchExpr/$outExpr/"
+			while read -r bVar bPlugin bTarget; do
+				if [[ "$plugin" == "" || "$bPlugin" == "$plugin" ]]; then
+					printf "%s -> %s.%s\n" "$bVar" "$bPlugin" "$bTarget"
+				fi
+			done < "$bindingsFile"
 		;;
 		'add')
 			local varName="$2"
