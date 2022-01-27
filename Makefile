@@ -69,8 +69,17 @@ install-man: $(MAN_PAGES)
 ########################
 
 .PHONY: uninstall
-uninstall:
+uninstall: uninstall-bin uninstall-completions uninstall-man
+
+.PHONY: uninstall-bin
+uninstall-bin:
 	rm -f $(addprefix $(PREFIX)/, $(BIN_FILES)) \; 
+
+.PHONY: uninstall-completions
+uninstall-completions:
 	find $(SHR_DIR)/bash-completion -type f -exec rm $(PREFIX)/{} \;
+
+.PHONY: uninstall-man
+uninstall-man:
 	find $(SHR_DIR)/man -type f -name \*.gz -exec rm $(PREFIX)/{} \;
 
